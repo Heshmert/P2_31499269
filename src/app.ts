@@ -27,7 +27,6 @@ app.use(session({
 }));
 app.use(flash());
 
-
 const db = new sqlite3.Database('./database.db', (err: Error | null) => {
     if (err) {
         console.error('Error al conectar con la base de datos:', err.message);
