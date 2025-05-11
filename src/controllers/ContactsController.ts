@@ -56,7 +56,7 @@ class ContactsController {
                  console.error('Error al obtener contactos:', err.message);
                  res.status(500).render('error', { pageTitle: 'Error', message: 'Error al cargar los contactos.' });
              } else {
-                 res.render('admin_contacts', { pageTitle: 'Administración de Contactos', contacts: contacts });
+                 res.render('admin/contacts', { pageTitle: 'Administración de Contactos', contacts: contacts });
              }
          });
     }
