@@ -59,18 +59,23 @@ class ContactController {
         const { name, email, message, 'g-recaptcha-response': recaptchaToken } = req.body;
         
         // FIX: Lógica más robusta para obtener clientIp y asegurar que sea string
-        let clientIp: string; // Declaramos clientIp como string
+        let clientIp: string;
         const xForwardedForHeader = req.headers['x-forwarded-for'];
 
-        if (typeof xForwardedForHeader === 'string') {
-            clientIp = xForwardedForHeader;
-        } else if (Array.isArray(xForwardedForHeader)) {
-            // Toma la primera IP si existe, si no, usa req.ip
-            // Y finalmente, si req.ip también es undefined, usa 'Desconocida'
-            clientIp = xForwardedForHeader[0] || req.ip || 'Desconocida';
+        if (xForwardedForHeader) {
+            let ips: string[] = [];
+            if (typeof xForwardedForHeader === 'string') {
+                // Si es una cadena (ej. "ip1, ip2, ip3"), la dividimos y limpiamos cada IP
+                ips = xForwardedForHeader.split(',').map(ip => ip.trim());
+            } else if (Array.isArray(xForwardedForHeader)) {
+                // Si ya es un array, simplemente limpiamos cada IP
+                ips = xForwardedForHeader.map(ip => ip.trim());
+            }
+            
+            // Por convención, la primera IP en X-Forwarded-For es la del cliente real
+            clientIp = ips[0] || req.ip || 'Desconocida'; 
         } else {
-            // Si no hay encabezado x-forwarded-for, usa req.ip
-            // Y finalmente, si req.ip también es undefined, usa 'Desconocida'
+            // Si no hay encabezado X-Forwarded-For, usamos req.ip como fallback
             clientIp = req.ip || 'Desconocida';
         }
 
