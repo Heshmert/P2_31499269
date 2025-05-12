@@ -1,10 +1,16 @@
-import sqlite3 from 'sqlite3';
+// src/models/ContactsModel.ts
 
+import * as sqlite3 from 'sqlite3';
+
+// ===========================================================
+// CAMBIO IMPORTANTE 1: Renombrado 'comment' a 'message' para coincidir con el controlador
+// ===========================================================
 export interface ContactData { 
     name: string;
     email: string;
-    comment: string;
-    ip_address?: string; 
+    message: string; // ¡Cambiado de 'comment' a 'message'!
+    clientIp?: string; 
+    country?: string; 
 }
 
 export interface Contact extends ContactData { 
@@ -17,67 +23,96 @@ class ContactsModel {
 
     constructor(db: sqlite3.Database) {
         this.db = db;
-        this.createTable();
+        // Llamada a createTable al inicio, ahora la convertimos a Promise
+        this.createTable().catch(err => console.error('Error en constructor al crear tabla:', err));
     }
 
-    createTable(): void {
-        const sql = `CREATE TABLE IF NOT EXISTS contacts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL,
-            comment TEXT,
-            ip_address TEXT,
-            created_at TEXT
-        )`;
-        this.db.run(sql, (err: Error | null) => {
-            if (err) {
-                console.error('CALLBACK CREATE TABLE - ERROR:', err.message); 
-            } else {
-                console.log('CALLBACK CREATE TABLE - ÉXITO: Tabla contacts lista o ya existía.'); 
-            }
-        });
-    }
-
-    addContact(contactData: ContactData, callback: (err: Error | null, contactId?: number) => void): void {
-        const sql = `INSERT INTO contacts (name, email, comment, ip_address, created_at)
-                     VALUES (?, ?, ?, ?, ?)`;
-        const now = new Date().toISOString(); 
-
-        this.db.run(
-            sql,
-            [contactData.name, contactData.email, contactData.comment, contactData.ip_address || null, now], 
-            function(this: sqlite3.RunResult, err: Error | null) {
+    // ===========================================================
+    // CAMBIO IMPORTANTE 2: createTable ahora devuelve una Promise
+    // ===========================================================
+    async createTable(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            // ===========================================================
+            // CAMBIO IMPORTANTE 3: Columna 'comment' a 'message' en la DB
+            // Usar DEFAULT CURRENT_TIMESTAMP para que SQLite maneje la fecha
+            // ===========================================================
+            const sql = `CREATE TABLE IF NOT EXISTS contacts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT NOT NULL,
+                message TEXT,    -- ¡Cambiado de 'comment' a 'message'!
+                country TEXT,          -- Asegúrate de que estas líneas estén aquí
+                clientIp TEXT, 
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )`;
+            this.db.run(sql, (err: Error | null) => {
                 if (err) {
-                    console.error('Error al ejecutar INSERT:', err.message);
-                    return callback(err);
+                    console.error('ERROR al crear tabla contacts:', err.message); 
+                    return reject(err);
                 }
-                callback(null, this.lastID);
-            }
-        );
-    }
-
-    getAllContacts(callback: (err: Error | null, contacts?: Contact[]) => void): void {
-        const sql = `SELECT id, name, email, comment, ip_address, created_at FROM contacts ORDER BY created_at DESC`;
-
-        this.db.all(sql, [], (err: Error | null, rows: any[]) => { 
-            if (err) {
-                console.error('Error al ejecutar SELECT:', err.message);
-                return callback(err);
-            }
-            callback(null, rows as Contact[]);
+                console.log('Tabla contacts lista o ya existía.'); 
+                resolve();
+            });
         });
     }
 
-    closeDb(callback?: (err: Error | null) => void): void {
-        this.db.close((err: Error | null) => {
-            if (err) {
-                console.error('Error al cerrar la base de datos:', err.message);
-            } else {
+    // ===========================================================
+    // CAMBIO IMPORTANTE 4: addContact ahora devuelve una Promise y acepta parámetros directos
+    // ===========================================================
+    async addContact(name: string, email: string, message: string, country: string, clientIp?: string): Promise<number> {
+        return new Promise((resolve, reject) => {
+            const sql = `INSERT INTO contacts (name, email, message, clientIp, country, created_at)
+                         VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`; // Usar CURRENT_TIMESTAMP de SQLite
+
+            const params = [
+                name,
+                email,
+                message, // 'message' ahora corresponde al campo de la DB
+                clientIp || null, // clientIp puede ser nulo
+                country || null     // country puede ser nulo si no se obtiene
+            ];
+
+            console.log('ContactsModel - addContact: Parámetros para insertar:', params);
+
+            this.db.run(sql, params, function(this: sqlite3.RunResult, err: Error | null) {
+                if (err) {
+                    console.error('Error al insertar contacto:', err.message);
+                    return reject(err);
+                }
+                resolve(this.lastID); // Resolvemos con el ID del nuevo registro
+            });
+        });
+    }
+
+    // ===========================================================
+    // CAMBIO IMPORTANTE 5: getAllContacts ahora devuelve una Promise
+    // ===========================================================
+    async getAllContacts(): Promise<Contact[]> {
+        return new Promise((resolve, reject) => {
+            // Seleccionar todos los campos relevantes, incluyendo 'country' y 'message'
+            const sql = `SELECT id, name, email, message, clientIp, country, created_at FROM contacts ORDER BY created_at DESC`;
+
+            this.db.all(sql, [], (err: Error | null, rows: any[]) => { 
+                if (err) {
+                    console.error('Error al obtener todos los contactos:', err.message);
+                    return reject(err);
+                }
+                resolve(rows as Contact[]);
+            });
+        });
+    }
+
+    // closeDb es opcional si ya lo manejas en app.ts, pero lo mantenemos consistente
+    async closeDb(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.db.close((err: Error | null) => {
+                if (err) {
+                    console.error('Error al cerrar la base de datos:', err.message);
+                    return reject(err);
+                }
                 console.log('Conexión a la base de datos cerrada.');
-            }
-            if (callback) {
-                callback(err);
-            }
+                resolve();
+            });
         });
     }
 }

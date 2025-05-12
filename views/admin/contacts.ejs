@@ -23,6 +23,7 @@
                                     <th>Email</th>
                                     <th class="comment-column">Comentario</th>
                                     <th>IP</th>
+                                    <th>País</th>
                                     <th>Fecha</th>
                                 </tr>
                             </thead>
@@ -32,8 +33,9 @@
                                             <td><%= contact.id %></td>
                                             <td><%= contact.name %></td>
                                             <td><%= contact.email %></td>
-                                            <td class="comment-column"><%= contact.comment %></td>
-                                            <td><%= contact.ip_address %></td>
+                                            <td class="comment-column"><%= contact.message %></td>
+                                            <td><%= contact.clientIp %></td>
+                                            <td><%= contact.country %></td>
                                             <td><%= contact.created_at %></td>
                                         </tr>
                                     <% }); %>
@@ -58,11 +60,15 @@
                                 </div>
                                  <div class="row mb-2">
                                     <div class="col-5"><strong class="contact-label">Comentario:</strong></div>
-                                    <div class="col-7 contact-value"><%= contact.comment %></div>
+                                    <div class="col-7 contact-value"><%= contact.message %></div>
                                 </div>
                                  <div class="row mb-2">
                                     <div class="col-5"><strong class="contact-label">IP:</strong></div>
-                                    <div class="col-7 contact-value"><%= contact.ip_address %></div>
+                                    <div class="col-7 contact-value"><%= contact.clientIp %></div>
+                                </div>
+                                 <div class="row mb-2">
+                                    <div class="col-5"><strong class="contact-label">Pais:</strong></div>
+                                    <div class="col-7 contact-value"><%= contact.country %></div>
                                 </div>
                                  <div class="row">
                                     <div class="col-5"><strong class="contact-label">Fecha:</strong></div>

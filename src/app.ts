@@ -1,4 +1,4 @@
-// src/app.ts
+
 
 import express, { Request, Response, Application } from 'express';
 import path from 'path';
@@ -6,13 +6,19 @@ import bodyParser from 'body-parser';
 import sqlite3 from 'sqlite3';
 import session from 'express-session';
 import flash from 'connect-flash';
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 import ContactsController from './controllers/ContactsController';
 import ContactsModel from './models/ContactsModel';
+import PaymentController from './controllers/PaymentController';
+
+import MailerService from './services/MailerService';
 
 const app: Application = express();
 app.set('trust proxy', true);
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/bootstrap', express.static(path.join(__dirname, '../node_modules/bootstrap/dist')));
@@ -25,6 +31,8 @@ app.use(session({
     resave: false, 
     saveUninitialized: true 
 }));
+app.use(express.urlencoded({ extended: true })); // Para formularios HTML estándar (application/x-www-form-urlencoded)
+app.use(express.json());
 app.use(flash());
 
 const db = new sqlite3.Database('./database.db', (err: Error | null) => {
@@ -38,7 +46,9 @@ const db = new sqlite3.Database('./database.db', (err: Error | null) => {
         console.log('EJS Views Directory configured as:', app.get('views'));
 
         const contactsModel = new ContactsModel(db);
-        const contactsController = new ContactsController(contactsModel);
+        const mailerService = new MailerService();
+        const contactsController = new ContactsController(contactsModel, mailerService);
+        const paymentController = new PaymentController();
 
         app.get('/', (req: Request, res: Response) => { res.render('index', { pageTitle: 'Inicio Ciclexpress' }); });
         app.get('/servicios', (req: Request, res: Response) => { res.render('servicios', { pageTitle: 'Servicios Ciclexpress' }); });
@@ -49,14 +59,22 @@ const db = new sqlite3.Database('./database.db', (err: Error | null) => {
         app.post('/contact/add', contactsController.add); 
         app.get('/admin/contacts', contactsController.index); 
 
-        app.get('/payment', (req: Request, res: Response) => { res.render('payment', { pageTitle: 'Procesar Pago' }); });
-        app.post('/payment/add', (req: Request, res: Response) => {
-            console.log("Datos de pago recibidos:", req.body);
-            res.send('<h1>Pago simulado realizado!</h1><p>Los datos fueron recibidos (simulados).</p>');
+        app.get('/payment', paymentController.showPaymentForm); // << NUEVO
+        app.post('/payment/add', paymentController.add);       // << NUEVO
+
+        // Manejo de errores 404
+        app.use((req: Request, res: Response) => {
+            res.status(404).render('error', { pageTitle: 'Página no encontrada', message: 'Lo sentimos, la página que buscas no existe.' });
         });
+
+
+
+
+
 
         app.listen(port, () => {
             console.log(`Servidor corriendo en http://localhost:${port}`);
+            console.log('Presiona Ctrl+C para detener el servidor');
         });
     }
 });
