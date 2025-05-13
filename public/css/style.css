@@ -130,3 +130,37 @@ footer{
         min-height: 65vh;
     }
 }
+
+.ciclexpress-logo {
+    display: flex; /* O grid, o posicionamiento absoluto */
+    align-items: center;
+    justify-content: center;
+    /* Otros estilos para el contenedor del logo */
+}
+
+.logo-icon {
+    width: 50px; /* Ejemplo */
+    height: 50px; /* Ejemplo */
+    position: relative;
+    /* Aquí la magia para dibujar las formas de la bici/patineta */
+    /* Por ejemplo, con borders, backgrounds, y pseudo-elementos ::before / ::after */
+}
+
+.logo-icon::before {
+    content: '';
+    position: absolute;
+    /* Estilos para una rueda o una línea */
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #333;
+}
+
+.logo-text {
+    font-family: 'Arial', sans-serif; /* O la fuente específica que elijas */
+    font-size: 24px; /* Tamaño del texto */
+    font-weight: bold;
+    color: #333; /* Color del texto */
+    letter-spacing: 1px; /* Espaciado entre letras */
+    margin-left: 10px; /* Espacio entre el icono y el texto */
+}

@@ -32,10 +32,7 @@ class ContactsModel {
     // ===========================================================
     async createTable(): Promise<void> {
         return new Promise((resolve, reject) => {
-            // ===========================================================
-            // CAMBIO IMPORTANTE 3: Columna 'comment' a 'message' en la DB
-            // Usar DEFAULT CURRENT_TIMESTAMP para que SQLite maneje la fecha
-            // ===========================================================
+
             const sql = `CREATE TABLE IF NOT EXISTS contacts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -56,9 +53,6 @@ class ContactsModel {
         });
     }
 
-    // ===========================================================
-    // CAMBIO IMPORTANTE 4: addContact ahora devuelve una Promise y acepta parámetros directos
-    // ===========================================================
     async addContact(name: string, email: string, message: string, country: string, clientIp?: string): Promise<number> {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO contacts (name, email, message, clientIp, country, created_at)
@@ -84,9 +78,6 @@ class ContactsModel {
         });
     }
 
-    // ===========================================================
-    // CAMBIO IMPORTANTE 5: getAllContacts ahora devuelve una Promise
-    // ===========================================================
     async getAllContacts(): Promise<Contact[]> {
         return new Promise((resolve, reject) => {
             // Seleccionar todos los campos relevantes, incluyendo 'country' y 'message'

@@ -1,26 +1,18 @@
-// src/controllers/PaymentController.ts
-
 import { Request, Response } from 'express';
-import fetch from 'node-fetch'; // Asegúrate de que node-fetch@2 y @types/node-fetch@2 estén instalados
+import fetch from 'node-fetch';
+import MailerService from '../services/MailerService';
 
-// Importante: Si `dotenv.config()` no está ya en app.ts al inicio,
-// podrías necesitarlo aquí también si este archivo se ejecuta de forma independiente.
-// Sin embargo, la práctica común es que app.ts lo maneje globalmente.
-// import * as dotenv from 'dotenv';
-// dotenv.config(); // <-- Descomenta si las variables de entorno no se cargan.
 
 class PaymentController {
-    // Definimos la URL base de la API como una propiedad de la clase
     private readonly API_BASE_URL = 'https://fakepayment.onrender.com';
-
-    // Leemos la clave de API de las variables de entorno.
-    // Esta línea lee lo que has puesto en tu archivo .env.
+    private mailerService: MailerService;
     private readonly API_KEY = process.env.FAKE_PAYMENT_API_KEY; 
 
-    constructor() {
+    constructor(mailerService: MailerService) {
+        this.mailerService = mailerService;
+        this.showPaymentForm = this.showPaymentForm.bind(this); 
         this.add = this.add.bind(this);
-        this.showPaymentForm = this.showPaymentForm.bind(this);
-
+        // ------------------------------------------
         // Una advertencia útil si la clave de API no se carga.
         if (!this.API_KEY) {
             console.warn('ADVERTENCIA: La clave de API de Fake Payment (FAKE_PAYMENT_API_KEY) no está configurada en .env. Las solicitudes de pago fallarán.');
@@ -76,7 +68,6 @@ class PaymentController {
             req.flash('paymentError', 'Error: El monto a pagar debe ser un número positivo.');
             return res.redirect('/payment');
         }
-
         const reference = `payment_id_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
         const description = `Pago por servicio: ${service}`;
         const formattedExpiryMonth = String(expiryMonth).padStart(2, '0');
@@ -96,12 +87,11 @@ class PaymentController {
 
             console.log('PaymentController - Enviando a API de pago:', paymentPayload);
 
-            // ***** Aquí es donde se usa la API_BASE_URL y la API_KEY en los encabezados *****
             const fakePaymentApiResponse = await fetch(`${this.API_BASE_URL}/payments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.API_KEY}` // <-- ¡Esta línea es CRÍTICA para la autenticación!
+                    'Authorization': `Bearer ${this.API_KEY}`
                 },
                 body: JSON.stringify(paymentPayload)
             });
@@ -117,15 +107,27 @@ class PaymentController {
                 req.flash('paymentError', `Error en el pago: La API devolvió un formato inesperado o un error interno. (Respuesta: ${rawResponseText.substring(0, 100)}...)`);
                 return res.redirect('/payment');
             }
-
             if (paymentResult.success) {
                 console.log('Pago simulado exitoso:', paymentResult);
-                req.flash('paymentSuccess', `¡Pago exitoso! Transacción ID: ${paymentResult.transactionId || paymentResult.reference}`);
+                req.flash('paymentSuccess', `¡Pago exitoso! ${paymentResult.data.transaction_id}`);
+                try {
+                await this.mailerService.sendPaymentConfirmation(
+                    email,
+                    cardName,
+                    paymentResult.data.transaction_id,
+                    amount,
+                    currency,
+                    new Date() // Puedes usar la fecha actual del servidor o la fecha real de la transacción
+                );
+                console.log('PaymentController: Correo de confirmación de pago enviado al usuario.');
+            } catch (emailError) {
+                console.error('PaymentController: Error al enviar correo de confirmación de pago:', emailError);
+            }
             } else {
                 console.error('Pago simulado fallido:', paymentResult);
                 req.flash('paymentError', `Error en el pago: ${paymentResult.message || 'Transacción rechazada.'}`);
             }
-        } catch (apiError) {
+        }catch (apiError) {
             console.error('Error al comunicarse con la API de pago simulado (FetchError):', apiError);
             req.flash('paymentError', 'Error al procesar el pago. Intenta de nuevo más tarde.');
         }

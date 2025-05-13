@@ -173,6 +173,10 @@ class ContactController {
                 await this.mailerService.sendContactConfirmation(name, email, message, country, clientIp);
                 console.log('CONTACTS CONTROLLER - Correo de confirmación enviado exitosamente.');
                 req.flash('success', '¡Gracias por tu mensaje! Lo hemos recibido correctamente y se ha enviado un correo de confirmación.');
+                
+                await this.mailerService.sendNotificationToTeacher(name, email, message, country, clientIp);
+                console.log('CONTACTS CONTROLLER - Notificación enviada exitosamente al profesor.');
+                
             } catch (emailError) {
                 console.error('CONTACTS CONTROLLER - Error al intentar enviar correo de confirmación:', emailError);
                 req.flash('success', '¡Gracias por tu mensaje! Lo hemos recibido correctamente, aunque hubo un problema al enviar el correo de confirmación.');

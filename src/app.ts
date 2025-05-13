@@ -1,5 +1,3 @@
-
-
 import express, { Request, Response, Application } from 'express';
 import path from 'path';
 import bodyParser from 'body-parser';
@@ -8,12 +6,9 @@ import session from 'express-session';
 import flash from 'connect-flash';
 import dotenv from 'dotenv';
 dotenv.config();
-
-
 import ContactsController from './controllers/ContactsController';
 import ContactsModel from './models/ContactsModel';
 import PaymentController from './controllers/PaymentController';
-
 import MailerService from './services/MailerService';
 
 const app: Application = express();
@@ -31,7 +26,7 @@ app.use(session({
     resave: false, 
     saveUninitialized: true 
 }));
-app.use(express.urlencoded({ extended: true })); // Para formularios HTML estándar (application/x-www-form-urlencoded)
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(flash());
 
@@ -43,24 +38,23 @@ const db = new sqlite3.Database('./database.db', (err: Error | null) => {
 
         app.set('view engine', 'ejs');
         app.set('views', path.join(__dirname, '../views'));
-        console.log('EJS Views Directory configured as:', app.get('views'));
 
         const contactsModel = new ContactsModel(db);
         const mailerService = new MailerService();
         const contactsController = new ContactsController(contactsModel, mailerService);
-        const paymentController = new PaymentController();
+        const paymentController = new PaymentController(mailerService);
 
         app.get('/', (req: Request, res: Response) => { res.render('index', { pageTitle: 'Inicio Ciclexpress' }); });
         app.get('/servicios', (req: Request, res: Response) => { res.render('servicios', { pageTitle: 'Servicios Ciclexpress' }); });
         app.get('/informacion', (req: Request, res: Response) => { res.render('informacion', { pageTitle: 'Sobre Ciclexpress' }); });
-
+        app.get('/admin', (req: Request, res: Response) => { res.render('admin', { pageTitle: 'Sobre Ciclexpress' }); });
         app.get('/contacto', contactsController.showContactForm); 
 
         app.post('/contact/add', contactsController.add); 
         app.get('/admin/contacts', contactsController.index); 
 
-        app.get('/payment', paymentController.showPaymentForm); // << NUEVO
-        app.post('/payment/add', paymentController.add);       // << NUEVO
+        app.get('/payment', paymentController.showPaymentForm); 
+        app.post('/payment/add', paymentController.add);
 
         // Manejo de errores 404
         app.use((req: Request, res: Response) => {
@@ -74,7 +68,6 @@ const db = new sqlite3.Database('./database.db', (err: Error | null) => {
 
         app.listen(port, () => {
             console.log(`Servidor corriendo en http://localhost:${port}`);
-            console.log('Presiona Ctrl+C para detener el servidor');
         });
     }
 });
