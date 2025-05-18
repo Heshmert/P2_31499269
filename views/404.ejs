@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle || 'Página no encontrada' %></title>
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa; /* Color de fondo claro de Bootstrap */
+            color: #495057; /* Color de texto de Bootstrap */
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 6rem;
+            margin-bottom: 0.5rem;
+            color: #dc3545; /* Color rojo de Bootstrap */
+        }
+        p {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        a {
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <p>¡Ups! La página que buscas no se encuentra.</p>
+        <p>Parece que te has perdido en el ciberespacio.</p>
+        <a href="/" class="btn btn-primary">Volver a la página de inicio</a>
+    </div>
+
+    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

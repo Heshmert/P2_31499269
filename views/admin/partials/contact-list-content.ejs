@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= pageTitle %></title>
+    <title>Lista de Contactos</title>
 </head>
 <body>
-    <%- include('../partials/header.ejs')%>
     <main>
         <section class="section">
             <div class="container">
-                <h2><%= pageTitle %></h2>
+                <h2>Lista de Contactos</h2>
         
                 <% if (contacts && contacts.length > 0) { %>
         
@@ -84,6 +83,5 @@
             </div>
         </section>
     </main>
-    <%- include('../partials/footer.ejs')%>
 </body>
 </html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle || 'Panel de Administración' %></title>
+    <!-- Solo Bootstrap para tablas y modales -->
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
+</head>
+<body>
+    <main class="admin-layout-main">
+        <div class="sidebar" id="adminSidebar">
+            <h4 class="mb-4">Panel Admin</h4>
+            <!-- Solo el fragmento relevante del menú lateral -->
+            <ul class="nav" id="adminNav">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#contacts" data-target-section="contacts-section">
+                        <i class="bi bi-person-lines-fill"></i> Todos los Contactos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#replies" data-target-section="pending-replies-section">
+                        <i class="bi bi-chat-dots"></i> Mensajes Pendientes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#replied" data-target-section="replied-messages-section">
+                        <i class="bi bi-check-all"></i> Mensajes Respondidos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#payments" data-target-section="payments-section">
+                        <i class="bi bi-currency-dollar"></i> Pagos/Ventas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/">
+                        <i class="bi bi-house-door"></i> Volver al Inicio
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="content-area">
+            <button class="sidebar-toggler" aria-label="Abrir menú" style="margin-bottom:16px;">
+                <i class="bi bi-list" style="font-size:2rem;"></i>
+            </button>
+            <div class="main-content" id="adminMainContent">
+
+                <!-- Lista de Contactos -->
+                <section id="contacts-section" class="content-section active">
+                    <div>
+                        <h2>Lista de Contactos</h2>
+                        <% if (allContacts && allContacts.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover caption-top">
+                                <caption>Todos los contactos registrados</caption>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>IP</th>
+                                        <th>País</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% allContacts.forEach(contact => { %>
+                                    <tr>
+                                        <td><%= contact.id %></td>
+                                        <td><%= contact.name %></td>
+                                        <td><%= contact.email %></td>
+                                        <td><%= contact.clientIp %></td>
+                                        <td><%= contact.country %></td>
+                                        <td><%= contact.timestamp %></td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } else { %>
+                        <p>No hay contactos registrados aún.</p>
+                        <% } %>
+                    </div>
+                </section>
+
+                <!-- Mensajes Pendientes -->
+                <section id="pending-replies-section" class="content-section">
+                    <div>
+                        <h2>Mensajes Pendientes</h2>
+                        <% if (replySuccess && replySuccess.length > 0) { %>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <%= replySuccess[0] %>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <% } %>
+                        <% if (replyError && replyError.length > 0) { %>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <%= replyError[0] %>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <% } %>
+                        <% if (replyWarning && replyWarning.length > 0) { %>
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <%= replyWarning[0] %>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <% } %>
+                        <% if (pendingContacts && pendingContacts.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped caption-top">
+                                <caption>Lista de mensajes pendientes de respuesta</caption>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Fecha</th>
+                                        <th>Mensaje</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% pendingContacts.forEach(function(contact) { %>
+                                    <tr>
+                                        <td><%= contact.id %></td>
+                                        <td><%= contact.name %></td>
+                                        <td><%= contact.email %></td>
+                                        <td><%= new Date(contact.timestamp).toLocaleString() %></td>
+                                        <td><%= contact.message.substring(0, 100) %><% if (contact.message.length > 100) { %>...<% } %></td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-primary reply-button"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#replyMessageModal_<%= contact.id %>">
+                                                Responder
+                                            </button>
+                                            <!-- Modal de respuesta -->
+                                            <div class="modal fade" id="replyMessageModal_<%= contact.id %>"
+                                                data-bs-backdrop="static" data-bs-keyboard="false"
+                                                tabindex="-1"
+                                                aria-labelledby="replyMessageModalLabel_<%= contact.id %>"
+                                                aria-hidden="true">
+                                                <div class="modal-dialog modal-lg">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h1 class="modal-title fs-5" id="replyMessageModalLabel_<%= contact.id %>">
+                                                                Responder Mensaje (ID: <%= contact.id %>)
+                                                            </h1>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label class="form-label">De:</label>
+                                                                <input type="text" class="form-control" value="<%= contact.name %> (<%= contact.email %>)" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Fecha:</label>
+                                                                <input type="text" class="form-control" value="<%= new Date(contact.timestamp).toLocaleString() %>" readonly>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Mensaje Original:</label>
+                                                                <textarea class="form-control" rows="5" readonly><%= contact.message %></textarea>
+                                                            </div>
+                                                            <hr>
+                                                            <form class="reply-form" data-contact-id="<%= contact.id %>" action="/admin/replies/send/<%= contact.id %>" method="POST">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Asunto de la Respuesta:</label>
+                                                                    <input type="text" class="form-control" name="replySubject" value="RE: Mensaje de <%= contact.name %>" required>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Tu Respuesta:</label>
+                                                                    <textarea class="form-control" name="replyContent" rows="8" required></textarea>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                                    <button type="submit" class="btn btn-primary">Enviar Respuesta</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } else { %>
+                        <p>No hay mensajes pendientes de respuesta.</p>
+                        <% } %>
+                    </div>
+                </section>
+
+                <!-- Mensajes Respondidos -->
+                <section id="replied-messages-section" class="content-section">
+                    <div>
+                        <h2>Mensajes Respondidos</h2>
+                        <% if (repliedContacts && repliedContacts.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped caption-top">
+                                <caption>Lista de mensajes que han sido respondidos</caption>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Recibido</th>
+                                        <th>Mensaje</th>
+                                        <th>Respuesta</th>
+                                        <th>Enviado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% repliedContacts.forEach(function(contact) { %>
+                                    <tr>
+                                        <td><%= contact.id %></td>
+                                        <td><%= contact.name %></td>
+                                        <td><%= contact.email %></td>
+                                        <td><%= new Date(contact.timestamp).toLocaleString() %></td>
+                                        <td><%= contact.message.substring(0, 100) %><% if (contact.message.length > 100) { %>...<% } %></td>
+                                        <td><%= contact.replyMessage.substring(0, 100) %><% if (contact.replyMessage.length > 100) { %>...<% } %></td>
+                                        <td><%= contact.repliedAt ? new Date(contact.repliedAt).toLocaleString() : 'N/A' %></td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } else { %>
+                        <p>No hay mensajes respondidos.</p>
+                        <% } %>
+                    </div>
+                </section>
+
+                <!-- Pagos/Ventas -->
+                <section id="payments-section" class="content-section">
+                    <div>
+                        <h2>Pagos/Ventas</h2>
+                        <% if (payments && payments.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover caption-top">
+                                <caption>Registros de pagos procesados</caption>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Referencia</th>
+                                        <th>Monto</th>
+                                        <th>Moneda</th>
+                                        <th>Estado</th>
+                                        <th>Fecha/Hora</th>
+                                        <th>Email</th>
+                                        <th>Descripción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% payments.forEach(function(payment) { %>
+                                    <tr>
+                                        <td><%= payment.id %></td>
+                                        <td><%= payment.transactionId || 'N/A' %></td>
+                                        <td><%= payment.amount ? payment.amount.toFixed(2) : 'N/A' %></td>
+                                        <td><%= payment.currency || 'N/A' %></td>
+                                        <td><%= payment.status || 'N/A' %></td>
+                                        <td><%= payment.timestamp ? new Date(payment.timestamp).toLocaleString() : 'N/A' %></td>
+                                        <td><%= payment.buyerEmail || 'N/A' %></td>
+                                        <td><%= payment.description || 'N/A' %></td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } else { %>
+                        <p>No hay registros de pagos disponibles.</p>
+                        <% } %>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+    <!-- Solo Bootstrap JS para modales -->
+    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>

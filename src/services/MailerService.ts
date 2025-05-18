@@ -100,7 +100,6 @@ class MailerService {
         };
     }
 
-
     async sendContactConfirmation(name: string, email: string, message: string, country: string, clientIp: string): Promise<void> {
         // Se verifica si el transporter fue inicializado correctamente
         if (!this.transporter) {
@@ -449,6 +448,91 @@ class MailerService {
             console.log('MailerService: Correo de confirmación de pago enviado. ID: %s', info.messageId);
         } catch (error) {
             console.error('MailerService: Error al enviar correo de confirmación de pago:', error);
+            throw error;
+        }
+    }
+
+    async sendContactReply(userEmail: string, originalMessage: string, replyMessage: string, adminName: string = 'Administrador'): Promise<void> {
+         if (!this.transporter) {
+            console.error('MailerService: No se puede enviar la respuesta al contacto. El transporter no está inicializado.');
+            throw new Error('Servicio de correo no configurado.');
+        }
+
+        // Idealmente, usarías una plantilla Handlebars/EJS para esto.
+        // Aquí, usamos un string template básico como ejemplo.
+        const emailHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Respuesta a tu Mensaje de Contacto</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 20px; }
+                    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #ddd; }
+                    h1 { color: #0056b3; text-align: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+                    h2 { color: #0056b3; margin-top: 25px; }
+                    p { margin-bottom: 10px; }
+                    .original-message {
+                        border-left: 4px solid #eee;
+                        padding-left: 15px;
+                        margin: 20px 0;
+                        font-style: italic;
+                        color: #555;
+                        white-space: pre-wrap; /* Preserva saltos de línea del mensaje original */
+                    }
+                    .admin-reply {
+                         margin: 20px 0;
+                         padding: 15px;
+                         background-color: #e9f4ff; /* Un fondo ligero para la respuesta */
+                         border-radius: 5px;
+                         white-space: pre-wrap; /* Preserva saltos de línea de la respuesta */
+                    }
+                    .footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #777; border-top: 1px solid #eee; padding-top: 15px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Respuesta a tu Mensaje</h1>
+                    <p>Hola,</p>
+                    <p>${adminName} del equipo de ${process.env.EMAIL_NAME || 'Tu Aplicación'} ha respondido a tu mensaje:</p>
+
+                    <h2>Tu Mensaje Original:</h2>
+                    <div class="original-message">
+                        <p>${originalMessage}</p> {/* Ya no es necesario reemplazar \n con pre-wrap */}
+                    </div>
+
+                    <h2>Nuestra Respuesta:</h2>
+                     <div class="admin-reply">
+                        <p>${replyMessage}</p> {/* Ya no es necesario reemplazar \n con pre-wrap */}
+                     </div>
+
+
+                    <p>Si tienes más preguntas, no dudes en contactarnos respondiendo a este correo.</p>
+
+                    <p class="footer">
+                        Atentamente,<br>
+                        El equipo de ${process.env.EMAIL_NAME || 'Tu Aplicación'}
+                        <br><br>
+                        <small>Este es un correo automático de respuesta a un mensaje previo.</small>
+                    </p>
+                </div>
+            </body>
+            </html>
+        `;
+
+
+        try {
+            const info = await this.transporter.sendMail({
+                from: `"${process.env.EMAIL_NAME || 'Tu Aplicación'}" <${process.env.EMAIL_USER}>`,
+                to: userEmail, // Envía la respuesta al usuario original
+                subject: "Respuesta a tu mensaje de contacto", // Asunto claro
+                html: emailHtml,
+            });
+
+            console.log('MailerService: Respuesta a contacto enviada a %s. ID: %s', userEmail, info.messageId);
+
+        } catch (error) {
+            console.error('MailerService: Error al enviar respuesta a contacto:', error);
             throw error;
         }
     }

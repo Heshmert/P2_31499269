@@ -1,0 +1,144 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Layout principal */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #f8f9fa;
+    overflow-x: hidden;
+}
+
+.admin-layout-main {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    height: 100vh;
+    width: 100vw;
+    grid-template-areas: "sidebar content";
+}
+
+/* Sidebar fijo y compacto */
+.sidebar {
+    grid-area: sidebar;
+    background: #343a40;
+    color: #fff;
+    height: 100vh;
+    padding: 32px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    border-right: 1px solid #23272b;
+    z-index: 1040;
+}
+
+.sidebar h4 {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.sidebar .nav {
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sidebar .nav-link {
+    color: rgba(255,255,255,0.85);
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 0;
+    transition: background 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+}
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.12);
+}
+.sidebar .nav-link i {
+    color: white;
+    margin-right: 8px;
+}
+
+/* Área de contenido alineada y sin scrolls extra */
+.content-area {
+    grid-area: content;
+    padding: 32px 16px 16px 16px;
+    background: #f8f9fa;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+.main-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.table-responsive {
+    margin-bottom: 1.5rem;
+}
+.table {
+    background: #fff;
+    border-radius: 0.4rem;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+/* Secciones de contenido */
+.content-section {
+    display: none;
+    width: 100%;
+}
+.content-section.active {
+    display: block;
+}
+.sidebar-toggler {
+    display: none;
+}
+
+/* Responsive: sidebar oculto en móvil, menú hamburguesa opcional */
+@media (max-width: 991.98px) {
+    .admin-layout-main {
+        grid-template-columns: 0 1fr;
+    }
+    .sidebar {
+        position: fixed;
+        left: -220px;
+        top: 0;
+        height: 100vh;
+        width: 220px;
+        z-index: 2000;
+        transition: left 0.3s;
+        box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+    }
+    .sidebar.show {
+        left: 0;
+    }
+    .content-area {
+        grid-column: 1 / span 2;
+        margin-left: 0;
+        padding: 24px 8px 8px 8px;
+        width: 100vw;
+    }
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.4);
+        z-index: 1999;
+    }
+    .sidebar-overlay.show {
+        display: block;
+    }
+    .sidebar-toggler {
+        display: inline-block;
+    }
+}
