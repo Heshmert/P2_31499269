@@ -36,8 +36,8 @@ class AdminController {
         try {
             // Obtener TODOS los datos necesarios para todas las secciones
             const allContacts = await this.contactsModel.getAllContacts(); // Obtiene todos los contactos
-            const pendingContacts = await this.contactsModel.getAllContacts('Pending'); // Obtiene solo pendientes
-            const repliedContacts = await this.contactsModel.getAllContacts('Respondido'); // Obtiene solo respondidos
+            const pendingContacts = await this.contactsModel.getMessagesByStatus('Pending');
+            const repliedContacts = await this.contactsModel.getMessagesByStatus('Respondido'); // Obtiene solo respondidos
             const payments = await this.paymentModel.getAllPayments(); // Obtiene todos los pagos
 
 
@@ -88,7 +88,6 @@ class AdminController {
         }
     }
 
-
     // --- Métodos de lista que ahora REDIRIGEN al panel principal ---
     showContactList(req: Request, res: Response): void {
         console.log('AdminController - showContactList: Ejecutando GET /admin/contacts (Redirigiendo).');
@@ -111,64 +110,54 @@ class AdminController {
     }
 
 
-    // --- Método para mostrar el formulario de respuesta (si usas una página dedicada) ---
-    // Mantenlo si tienes views/admin/reply-form.ejs. Si solo usas el modal, puedes eliminarlo.
- 
-
-    // --- Método para manejar el envío del formulario de respuesta (POST) ---
-    // Este método sigue siendo necesario para procesar el formulario del modal.
     async sendReply(req: Request, res: Response): Promise<void> {
-        const contactId = parseInt(req.params.contactId);
+        const messageId = parseInt(req.params.messageId); // <-- Cambia aquí
 
-        const { replySubject, replyContent } = req.body; // Asegúrate de obtener ambos campos
+        const { replySubject, replyContent } = req.body;
 
-        console.log(`AdminController - sendReply: Ejecutando POST /admin/replies/send/${contactId}.`);
+        console.log(`AdminController - sendReply: Ejecutando POST /admin/replies/send/${messageId}.`);
 
-        if (isNaN(contactId)) {
-            console.warn('AdminController - sendReply: ID de contacto inválido.');
-            req.flash('replyError', 'ID de contacto inválido para enviar respuesta.');
-            return res.redirect('/admin'); // Redirige al panel principal
+        if (isNaN(messageId)) {
+            console.warn('AdminController - sendReply: ID de mensaje inválido.');
+            req.flash('replyError', 'ID de mensaje inválido para enviar respuesta.');
+            return res.redirect('/admin');
         }
         if (!replyContent || replyContent.trim() === '') {
             console.warn('AdminController - sendReply: El mensaje de respuesta está vacío.');
             req.flash('replyError', 'El mensaje de respuesta no puede estar vacío.');
-            return res.redirect('/admin'); // Redirige al panel principal
+            return res.redirect('/admin');
         }
 
         try {
-            const contact = await this.contactsModel.getContactById(contactId);
+            const message = await this.contactsModel.getMessageById(messageId); // <-- Cambia aquí
 
-            if (!contact) {
-                 console.warn(`AdminController - sendReply: Contacto con ID ${contactId} no encontrado.`);
-                 req.flash('replyError', `Contacto con ID ${contactId} no encontrado para enviar respuesta.`);
-                 return res.redirect('/admin'); // Redirige al panel principal
+            if (!message) {
+                console.warn(`AdminController - sendReply: Mensaje con ID ${messageId} no encontrado.`);
+                req.flash('replyError', `Mensaje con ID ${messageId} no encontrado para enviar respuesta.`);
+                return res.redirect('/admin');
             }
-            if (contact.status !== 'Pending') {
-                 console.warn(`AdminController - sendReply: Mensaje con ID ${contactId} ya respondido.`);
-                 req.flash('replyWarning', `El mensaje de ${contact.name} (ID: ${contactId}) ya ha sido respondido.`);
-                 return res.redirect('/admin'); // Redirige al panel principal
+            if (message.status !== 'Pending') {
+                console.warn(`AdminController - sendReply: Mensaje con ID ${messageId} ya respondido.`);
+                req.flash('replyWarning', `El mensaje de ${message.name} (ID: ${messageId}) ya ha sido respondido.`);
+                return res.redirect('/admin');
             }
 
-            const adminName = 'Admin'; // O el nombre que uses
-            // Asegúrate de que sendContactReply en MailerService pueda manejar el asunto
-            await this.mailerService.sendContactReply(contact.email, contact.message, replyContent, adminName);
-            console.log(`Respuesta enviada por correo al usuario ${contact.email}.`);
+            const adminName = 'Admin';
+            await this.mailerService.sendContactReply(message.email, message.message, replyContent, adminName);
+            console.log(`Respuesta enviada por correo al usuario ${message.email}.`);
 
-            await this.contactsModel.updateContactReplyStatus(contactId, replyContent, adminName);
-            console.log(`Estado del contacto ${contactId} actualizado a 'Respondido'.`);
+            await this.contactsModel.updateMessageReplyStatus(messageId, replyContent, adminName);
+            console.log(`Estado del mensaje ${messageId} actualizado a 'Respondido'.`);
 
-            // --- Siempre redirige a la página principal del panel después de un envío exitoso ---
-            console.log('AdminController - sendReply: Procesamiento exitoso. Redirigiendo a /admin.');
-            req.flash('replySuccess', `Respuesta enviada exitosamente a ${contact.name}.`);
-            res.redirect('/admin'); // Redirige al panel principal
+            req.flash('replySuccess', `Respuesta enviada exitosamente a ${message.name}.`);
+            res.redirect('/admin');
         } catch (error) {
-             console.error(`AdminController - sendReply: Error al enviar respuesta o actualizar contacto ${contactId}:`, error);
-             req.flash('replyError', `Error al enviar la respuesta para el mensaje con ID ${contactId}.`);
-             res.redirect('/admin'); // Redirige al panel principal
+            console.error(`AdminController - sendReply: Error al enviar respuesta o actualizar mensaje ${messageId}:`, error);
+            req.flash('replyError', `Error al enviar la respuesta para el mensaje con ID ${messageId}.`);
+            res.redirect('/admin');
         }
     }
 
-    // Asegúrate de exportar la clase al final
 }
 
 export default AdminController;

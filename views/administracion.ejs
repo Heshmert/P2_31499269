@@ -74,7 +74,7 @@
                                         <td><%= contact.email %></td>
                                         <td><%= contact.clientIp %></td>
                                         <td><%= contact.country %></td>
-                                        <td><%= contact.timestamp %></td>
+                                        <td><%= contact.created_at %></td>
                                     </tr>
                                     <% }); %>
                                 </tbody>
@@ -129,7 +129,7 @@
                                         <td><%= contact.name %></td>
                                         <td><%= contact.email %></td>
                                         <td><%= new Date(contact.timestamp).toLocaleString() %></td>
-                                        <td><%= contact.message.substring(0, 100) %><% if (contact.message.length > 100) { %>...<% } %></td>
+                                        <td><%= contact.message ? contact.message.substring(0, 100) : '' %><% if (contact.message && contact.message.length > 100) { %>...<% } %></td>
                                         <td>
                                             <button type="button" class="btn btn-sm btn-primary reply-button"
                                                 data-bs-toggle="modal"
@@ -142,7 +142,7 @@
                                                 tabindex="-1"
                                                 aria-labelledby="replyMessageModalLabel_<%= contact.id %>"
                                                 aria-hidden="true">
-                                                <div class="modal-dialog modal-lg">
+                                                <div class="modal-dialog modal-xl">
                                                     <div class="modal-content">
                                                         <div class="modal-header">
                                                             <h1 class="modal-title fs-5" id="replyMessageModalLabel_<%= contact.id %>">
@@ -150,34 +150,43 @@
                                                             </h1>
                                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                         </div>
-                                                        <div class="modal-body">
-                                                            <div class="mb-3">
-                                                                <label class="form-label">De:</label>
-                                                                <input type="text" class="form-control" value="<%= contact.name %> (<%= contact.email %>)" readonly>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label">Fecha:</label>
-                                                                <input type="text" class="form-control" value="<%= new Date(contact.timestamp).toLocaleString() %>" readonly>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label">Mensaje Original:</label>
-                                                                <textarea class="form-control" rows="5" readonly><%= contact.message %></textarea>
-                                                            </div>
-                                                            <hr>
-                                                            <form class="reply-form" data-contact-id="<%= contact.id %>" action="/admin/replies/send/<%= contact.id %>" method="POST">
-                                                                <div class="mb-3">
-                                                                    <label class="form-label">Asunto de la Respuesta:</label>
-                                                                    <input type="text" class="form-control" name="replySubject" value="RE: Mensaje de <%= contact.name %>" required>
+                                                        <div class="modal-body p-0">
+                                                            <div class="container-fluid">
+                                                                <div class="row g-0">
+                                                                    <!-- Columna izquierda: datos del mensaje -->
+                                                                    <div class="col-md-6 border-end p-4 bg-light modal-msg-scroll">
+                                                                        <div class="mb-3">
+                                                                            <label class="form-label fw-bold">De:</label>
+                                                                            <div><%= contact.name %> (<%= contact.email %>)</div>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label class="form-label fw-bold">Fecha:</label>
+                                                                            <div><%= new Date(contact.timestamp).toLocaleString() %></div>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label class="form-label fw-bold">Mensaje Original:</label>
+                                                                            <div class="border rounded p-2 bg-white" style="white-space: pre-wrap;"><%= contact.message %></div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <!-- Columna derecha: respuesta -->
+                                                                    <div class="col-md-6 p-4 modal-msg-scroll d-flex flex-column">
+                                                                        <form class="reply-form d-flex flex-column h-100" data-message-id="<%= contact.id %>" action="/admin/replies/send/<%= contact.id %>" method="POST">
+                                                                            <div class="mb-3">
+                                                                                <label class="form-label fw-bold">Asunto de la Respuesta:</label>
+                                                                                <input type="text" class="form-control" name="replySubject" value="RE: Mensaje de <%= contact.name %>" required>
+                                                                            </div>
+                                                                            <div class="mb-3 flex-grow-1 d-flex flex-column">
+                                                                                <label class="form-label fw-bold">Tu Respuesta:</label>
+                                                                                <textarea class="form-control flex-grow-1" name="replyContent" rows="5" style="min-height:120px; max-height:220px; resize:vertical;" required></textarea>
+                                                                            </div>
+                                                                            <div class="modal-footer px-0 pb-0 border-0">
+                                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                                                <button type="submit" class="btn btn-primary">Enviar Respuesta</button>
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="mb-3">
-                                                                    <label class="form-label">Tu Respuesta:</label>
-                                                                    <textarea class="form-control" name="replyContent" rows="8" required></textarea>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                                                    <button type="submit" class="btn btn-primary">Enviar Respuesta</button>
-                                                                </div>
-                                                            </form>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

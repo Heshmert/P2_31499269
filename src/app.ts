@@ -62,7 +62,6 @@ app.use((req, res, next) => {
 });
 app.set('trust proxy', true);
 
-const contactsModel = new ContactsModel(db);
 const paymentModel = new PaymentModel(db);
 console.log('paymentModel:', paymentModel);
 
@@ -72,7 +71,8 @@ const recaptchaService = new RecaptchaService();
 
 // Instanciar Controladores
 // --- Pasa todas las dependencias necesarias a cada controlador ---
-const contactController = new ContactController(contactsModel, mailerService, recaptchaService);
+const contactsModel = new ContactsModel(db);
+const contactController = new ContactController(contactsModel);
 const adminController = new AdminController(contactsModel, mailerService, paymentModel);
 const paymentController = new PaymentController(mailerService, paymentModel);
 
@@ -132,7 +132,7 @@ app.get('/admin/replied', (req, res) => res.redirect('/admin')); // Si tenías e
 
 // Esta ruta para el formulario de respuesta probablemente seguirá siendo una página completa
 // Esta ruta POST para enviar la respuesta también seguirá siendo un POST normal
-app.post('/admin/replies/send/:contactId', adminController.sendReply);
+app.post('/admin/replies/send/:messageId', adminController.sendReply);
 
 
 

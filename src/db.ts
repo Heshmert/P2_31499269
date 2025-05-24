@@ -38,38 +38,51 @@ function runAsync(sql: string, params: any[] = []): Promise<{ lastID: number; ch
 async function initTables(): Promise<void> {
     console.log('Iniciando creación/verificación de tablas...');
     try {
+        // Tabla de contactos únicos
         await runAsync(`
             CREATE TABLE IF NOT EXISTS contacts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
-                email TEXT NOT NULL,
-                message TEXT NOT NULL,
+                email TEXT NOT NULL UNIQUE,
                 country TEXT,
                 clientIp TEXT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                status TEXT DEFAULT 'Pending',
-                replyMessage TEXT,
-                repliedAt DATETIME,
-                repliedBy TEXT
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
         console.log('Tabla contacts lista o ya existía.');
 
+        // Tabla de mensajes asociados a un contacto
+        await runAsync(`
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                contactId INTEGER NOT NULL,
+                message TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                status TEXT DEFAULT 'Pending',
+                replyMessage TEXT,
+                repliedAt DATETIME,
+                repliedBy TEXT,
+                FOREIGN KEY (contactId) REFERENCES contacts(id)
+            )
+        `);
+        console.log('Tabla messages lista o ya existía.');
+
+        // Tabla de pagos (sin cambios)
         await runAsync(`
             CREATE TABLE IF NOT EXISTS payments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                transactionId TEXT UNIQUE, -- El ID de la transacción de la pasarela
-                userId INTEGER, -- Referencia a un usuario si tuvieras tabla de usuarios
+                transactionId TEXT UNIQUE,
+                userId INTEGER,
                 amount REAL,
                 currency TEXT,
-                status TEXT, -- Estado del pago real (ej. 'succeeded', 'failed')
+                status TEXT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                 buyerEmail TEXT,
                 description TEXT,
-                apiResponse TEXT -- Opcional: guardar la respuesta completa de la API
+                apiResponse TEXT
             )
         `);
-         console.log('Tabla payments lista o ya existía.');
+        console.log('Tabla payments lista o ya existía.');
 
 
         console.log('Creación/verificación de tablas completada.');
@@ -82,12 +95,3 @@ async function initTables(): Promise<void> {
 
 // Exporta la instancia de la base de datos y la función de inicialización de tablas
 export { db, initTables };
-
-process.on('SIGINT', () => {
-    db.close((err) => {
-        if (err) {
-            console.error('Error cerrando la base de datos desde db.ts:', err.message);
-        }
-        console.log('Conexión a la base de datos cerrada desde db.ts.');
-    });
-});

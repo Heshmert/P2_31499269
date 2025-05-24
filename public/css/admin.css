@@ -104,6 +104,24 @@ html, body {
     display: none;
 }
 
+/* Limita el alto del textarea y asegura que los botones siempre estén visibles */
+.reply-form {
+    min-height: 320px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+.reply-form textarea {
+    min-height: 120px;
+    max-height: 220px;
+    resize: vertical;
+}
+.modal-footer {
+    background: none;
+    border: none;
+    margin-top: auto;
+}
+
 /* Responsive: sidebar oculto en móvil, menú hamburguesa opcional */
 @media (max-width: 991.98px) {
     .admin-layout-main {
@@ -140,5 +158,35 @@ html, body {
     }
     .sidebar-toggler {
         display: inline-block;
+    }
+}
+
+/* Modal: scroll interno en el cuerpo, altura máxima en escritorio */
+@media (min-width: 992px) {
+    .modal-xl {
+        max-width: 900px;
+    }
+    .modal-msg-scroll {
+        max-height: 70vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+    .reply-form {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        max-height: 100%;
+    }
+    .reply-form textarea {
+        min-height: 120px;
+        max-height: 220px;
+        resize: vertical;
+    }
+    .modal-footer {
+        background: none;
+        border: none;
+        margin-top: auto;
     }
 }
