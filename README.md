@@ -45,8 +45,8 @@ A continuación se describen los pasos para configurar y ejecutar el proyecto en
 
 1. **Clonar el repositorio:**
     ```bash
-    git clone https://github.com/tu-usuario/tu-repositorio.git
-    cd tu-repositorio
+    git clone https://github.com/Heshmert/P2_31499269.git
+    cd task-0
     ```
 
 2. **Instalar las dependencias:**
