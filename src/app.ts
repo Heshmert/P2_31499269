@@ -5,7 +5,7 @@ dotenv.config();
 import express, { Request, Response, Application } from 'express'; 
 import path from 'path';
 import session from 'express-session';
-import flash from 'connect-flash';``
+import flash from 'connect-flash';
 import { db, initTables } from './db';
 
 // Importa tus modelos, servicios y controladores
@@ -17,17 +17,9 @@ import PaymentController from './controllers/PaymentController';
 import ContactController from './controllers/ContactController';
 import RecaptchaService from './services/RecaptchaService';
 
-
-console.log('--- app.ts: dotenv.config() ejecutado ---');
-console.log('Contenido de process.env.FAKE_PAYMENT_API_KEY en app.ts (después de dotenv.config()):', process.env.FAKE_PAYMENT_API_KEY ? 'Configurada' : 'NO Configurada');
-console.log('Contenido de process.env.RECAPTCHA_SITE_KEY en app.ts:', process.env.RECAPTCHA_SITE_KEY ? 'Configurada' : 'NO Configurada');
-console.log('Contenido de process.env.RECAPTCHA_SECRET_KEY en app.ts:', process.env.RECAPTCHA_SECRET_KEY ? 'Configurada' : 'NO Configurada');
-
-
 const app: Application = express(); 
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SESSION_SECRET || 'supersecreta_default_key';
-
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));
@@ -56,23 +48,17 @@ app.use((req, res, next) => {
     res.locals.replyError = req.flash('replyError');
     res.locals.replyWarning = req.flash('replyWarning');
     res.locals.unsentReplyMessage = req.flash('unsentReplyMessage');
-    // Pasa también la clave de sitio de reCAPTCHA para la vista de contacto
-     res.locals.recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY;
+    res.locals.recaptchaSiteKey = process.env.RECAPTCHA_SITE_KEY;
     next();
 });
 app.set('trust proxy', true);
 
 const paymentModel = new PaymentModel(db);
-console.log('paymentModel:', paymentModel);
-
 const mailerService = new MailerService();
-// --- Instancia RecaptchaService ---
 const recaptchaService = new RecaptchaService();
 
-// Instanciar Controladores
-// --- Pasa todas las dependencias necesarias a cada controlador ---
 const contactsModel = new ContactsModel(db);
-const contactController = new ContactController(contactsModel);
+const contactController = new ContactController(contactsModel, mailerService);
 const adminController = new AdminController(contactsModel, mailerService, paymentModel);
 const paymentController = new PaymentController(mailerService, paymentModel);
 
@@ -111,7 +97,7 @@ async function startApp() {
 // Inicia la aplicación llamando a la función asíncrona
 startApp();
 
-
+// Rutas principales
 app.get('/', (req: Request, res: Response) => { res.render('index', { pageTitle: 'Inicio Ciclexpress' }); });
 app.get('/servicios', (req: Request, res: Response) => { res.render('servicios', { pageTitle: 'Servicios Ciclexpress' }); });
 app.get('/informacion', (req: Request, res: Response) => { res.render('informacion', { pageTitle: 'Sobre Ciclexpress' }); });
@@ -119,23 +105,17 @@ app.get('/informacion', (req: Request, res: Response) => { res.render('informaci
 app.get('/contacto', contactController.showContactForm);
 app.post('/contacto', contactController.add);
 
-app.get('/payment', paymentController.showPaymentForm); // Usa paymentController
+app.get('/payment', paymentController.showPaymentForm);
 app.post('/payment', paymentController.add);
-           // Usa paymentController
 
 app.get('/admin', adminController.showAdminDashboard);
-// Las rutas anteriores ahora redirigen a la principal
 app.get('/admin/contacts', (req, res) => res.redirect('/admin'));
 app.get('/admin/replies', (req, res) => res.redirect('/admin'));
 app.get('/admin/payments', (req, res) => res.redirect('/admin'));
-app.get('/admin/replied', (req, res) => res.redirect('/admin')); // Si tenías esta ruta
-
-// Esta ruta para el formulario de respuesta probablemente seguirá siendo una página completa
-// Esta ruta POST para enviar la respuesta también seguirá siendo un POST normal
+app.get('/admin/replied', (req, res) => res.redirect('/admin'));
 app.post('/admin/replies/send/:messageId', adminController.sendReply);
 
-
-
+// Página 404
 app.use((req, res) => {
     res.status(404).render('404', { pageTitle: 'Página no encontrada' });
 });

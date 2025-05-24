@@ -2,6 +2,8 @@
 
 import { Request, Response } from 'express';
 import ContactsModel from '../models/ContactsModel';
+import MailerService from '../services/MailerService';
+import RecaptchaService from '../services/RecaptchaService';
 
 // Extiende la interfaz Request para incluir 'user'
 declare global {
@@ -18,30 +20,39 @@ declare global {
 
 class ContactController {
     private contactsModel: ContactsModel;
+    private mailerService: MailerService;
 
-    constructor(contactsModel: ContactsModel) {
+    constructor(contactsModel: ContactsModel, mailerService: MailerService) {
         this.contactsModel = contactsModel;
+        this.mailerService = mailerService;
         this.add = this.add.bind(this);
         this.showContactForm = this.showContactForm.bind(this);
     }
 
-    // Mostrar formulario de contacto
+    // Renderiza el formulario de contacto
     showContactForm(req: Request, res: Response): void {
         res.render('contacto', {
-            pageTitle: 'Contacto',
-            successMessage: req.flash('success'),
-            errorMessage: req.flash('error')
+            pageTitle: 'Contacto'
         });
     }
 
-    // Procesar envío de contacto
+    // Procesa el envío del formulario de contacto
     async add(req: Request, res: Response): Promise<void> {
         const { name, email, message } = req.body;
         const clientIp = req.ip || 'Desconocida';
-        const country = 'Desconocido'; // Puedes obtenerlo por IP si lo deseas
+        const country = 'Desconocido';
+
+        // Valida reCAPTCHA antes de guardar el mensaje
+        const recaptchaToken = req.body['g-recaptcha-response'];
+        const recaptchaService = new RecaptchaService();
+        const recaptchaOk = await recaptchaService.verifyRecaptcha(recaptchaToken, req.ip);
+
+        if (!recaptchaOk) {
+            req.flash('error', 'Debes completar el reCAPTCHA para enviar el formulario.');
+            return res.redirect('/contacto');
+        }
 
         try {
-            // Verifica si el contacto ya existe
             let contact = await this.contactsModel.findContactByEmail(email);
             let contactId: number;
 
@@ -49,24 +60,35 @@ class ContactController {
                 contactId = contact.id;
             } else {
                 contactId = await this.contactsModel.addContact(name, email, country, clientIp);
+                // Buscar el contacto recién creado para obtener todos los datos
+                contact = await this.contactsModel.findContactByEmail(email);
             }
 
-            // Guarda el mensaje asociado al contacto
             await this.contactsModel.addMessage(contactId, message);
 
-            req.flash('success', contact
+            await this.mailerService.sendContactConfirmation(
+                name,
+                email,
+                message,
+                country,
+                clientIp,
+                true,
+                contact?.id,         // userId
+                contact?.created_at  // createdAt
+            );
+
+            req.flash('success', contactId
                 ? '¡Mensaje recibido! Ya tenías un contacto registrado, tu mensaje fue guardado.'
                 : '¡Gracias por tu mensaje! Te hemos registrado como nuevo contacto.');
 
             res.redirect('/contacto');
         } catch (err) {
-            console.error('Error al guardar contacto/mensaje:', err);
             req.flash('error', 'Hubo un error interno al enviar tu mensaje. Por favor, intenta de nuevo más tarde.');
             res.redirect('/contacto');
         }
     }
 
-    // Obtener todos los contactos
+    // Renderiza la lista de todos los contactos
     async getAllContacts(req: Request, res: Response): Promise<void> {
         try {
             const allContacts = await this.contactsModel.getAllContacts();
@@ -75,13 +97,12 @@ class ContactController {
                 contacts: allContacts
             });
         } catch (err) {
-            console.error('Error al obtener contactos:', err);
             req.flash('error', 'Hubo un error al obtener los contactos. Por favor, intenta de nuevo más tarde.');
             res.redirect('/admin');
         }
     }
 
-    // Obtener mensajes por estado
+    // Renderiza mensajes filtrados por estado
     async getMessagesByStatus(req: Request, res: Response): Promise<void> {
         const { status } = req.params;
 
@@ -92,13 +113,12 @@ class ContactController {
                 messages
             });
         } catch (err) {
-            console.error('Error al obtener mensajes:', err);
             req.flash('error', 'Hubo un error al obtener los mensajes. Por favor, intenta de nuevo más tarde.');
             res.redirect('/admin');
         }
     }
 
-    // Obtener un mensaje específico
+    // Renderiza el detalle de un mensaje específico
     async getMessageById(req: Request, res: Response): Promise<void> {
         const { messageId } = req.params;
 
@@ -109,24 +129,21 @@ class ContactController {
                 message
             });
         } catch (err) {
-            console.error('Error al obtener el mensaje:', err);
             req.flash('error', 'Hubo un error al obtener el mensaje. Por favor, intenta de nuevo más tarde.');
             res.redirect('/admin');
         }
     }
 
-    // Responder un mensaje
+    // Actualiza el estado de un mensaje al responder
     async replyToMessage(req: Request, res: Response): Promise<void> {
         const { messageId, replyContent } = req.body;
         const adminName = req.user?.name ?? 'Administrador';
 
         try {
-            // Validar y convertir messageId a número
             if (!messageId || isNaN(Number(messageId))) {
                 req.flash('error', 'ID de mensaje inválido.');
                 return res.redirect('/admin');
             }
-            // Actualizar estado de un mensaje al responder
             await this.contactsModel.updateMessageReplyStatus(
                 Number(messageId),
                 replyContent ?? '',
@@ -136,7 +153,6 @@ class ContactController {
             req.flash('success', 'Respuesta enviada correctamente.');
             res.redirect('/admin');
         } catch (err) {
-            console.error('Error al responder el mensaje:', err);
             req.flash('error', 'Hubo un error al enviar la respuesta. Por favor, intenta de nuevo más tarde.');
             res.redirect('/admin');
         }

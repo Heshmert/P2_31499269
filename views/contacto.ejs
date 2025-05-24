@@ -15,6 +15,18 @@
             </div>
             <div>
                 <div class="form-container">
+                    <% if (successMessage && successMessage.length > 0) { %>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <%= successMessage[0] %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+<% } %>
+<% if (errorMessage && errorMessage.length > 0) { %>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <%= errorMessage[0] %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+<% } %>
                     <form action="/contacto" method="POST" id="contactForm">
                         <div class="row">
                             <div class="col-md-6">
@@ -40,21 +52,6 @@
                                 </div>
                             </div>
                         </div>
-
-
-
-                        <% if (successMessage) { %>
-                            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <%= successMessage %>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        <% } %>
-                        <% if (errorMessage) { %>
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <%= errorMessage %>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        <% } %>
             
                         <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">Enviar Mensaje <i class="bi bi-send-fill"></i></button>
                     </form>
