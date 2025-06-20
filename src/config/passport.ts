@@ -2,9 +2,9 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { User } from '../models/User';
-import dotenv from 'dotenv'; // Importa dotenv para cargar variables de entorno
+import dotenv from 'dotenv';
 
-dotenv.config(); // Asegúrate de que las variables de entorno estén cargadas aquí también para Passport
+dotenv.config(); 
 
 export default function configurePassport(app: any) {
     passport.use(new LocalStrategy(
@@ -33,7 +33,11 @@ export default function configurePassport(app: any) {
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
-                const user = await User.findOrCreateGoogleUser(profile);
+                const user = await User.findGoogleUser(profile);
+                if (!user) {
+                    // Usuario no autorizado
+                    return done(null, false, { message: 'Usuario no autorizado para acceder con Google.' });
+                }
                 return done(null, user);
             } catch (err) {
                 return done(err);
@@ -43,20 +47,17 @@ export default function configurePassport(app: any) {
 
     // Serialización: qué parte del usuario se guardará en la sesión
     passport.serializeUser((user: any, done) => {
-        done(null, user.id); // Solo guarda el ID del usuario en la sesión
+        done(null, user.id); 
     });
 
-    // Deserialización: cómo recuperar el usuario completo de la sesión usando el ID
     passport.deserializeUser(async (id: number, done) => {
         try {
             const user = await User.findById(id);
-            done(null, user); // Adjunta el objeto usuario completo a req.user
+            done(null, user);
         } catch (err) {
             done(err, null);
         }
     });
-
-    // Inicializar Passport y las sesiones de Passport en la aplicación Express
     app.use(passport.initialize());
     app.use(passport.session());
 }

@@ -23,7 +23,6 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     }
 });
 
-// Ejecuta una consulta SQL de forma asíncrona
 function runAsync(sql: string, params: any[] = []): Promise<{ lastID: number; changes: number }> {
     return new Promise((resolve, reject) => {
         db.run(sql, params, function(err) {
@@ -36,7 +35,6 @@ function runAsync(sql: string, params: any[] = []): Promise<{ lastID: number; ch
     });
 }
 
-// Crea/verifica las tablas principales de la base de datos
 async function initTables(): Promise<void> {
     console.log('Iniciando creación/verificación de tablas...');
     try {
@@ -86,10 +84,8 @@ async function initTables(): Promise<void> {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
-
-        // Crear usuario admin si no existe
         const adminUsername = 'admin';
-        const adminPassword = 'admin'; // Puedes cambiar la contraseña aquí
+        const adminPassword = 'admin'; 
         const adminHash = await bcrypt.hash(adminPassword, 10);
 
         const adminExists = await new Promise<boolean>((resolve, reject) => {

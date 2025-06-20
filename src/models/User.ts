@@ -39,12 +39,21 @@ export class User {
         return undefined;
     }
 
+    static async findGoogleUser(profile: any): Promise<User | undefined> {
+        const db = await open({ filename: dbPath, driver: sqlite3.Database });
+        const user = await db.get<User>('SELECT * FROM users WHERE google_id = ?', profile.id);
+        db.close();
+        if (user) {
+            return new User(user.username, user.password_hash, user.google_id, user.id, user.created_at);
+        }
+        return undefined;
+    }
+
     static async findOrCreateGoogleUser(profile: any): Promise<User> {
         const db = await open({ filename: dbPath, driver: sqlite3.Database });
         let user = await db.get<User>('SELECT * FROM users WHERE google_id = ?', profile.id);
 
         if (!user) {
-            // Si el usuario de Google no existe, créalo
             const username = profile.displayName || profile.emails?.[0]?.value || `google_user_${profile.id}`;
             const result = await db.run(
                 'INSERT INTO users (username, google_id) VALUES (?, ?)',
@@ -62,7 +71,7 @@ export class User {
 
     static async createUser(username: string, password_raw: string): Promise<User | undefined> {
         const db = await open({ filename: dbPath, driver: sqlite3.Database });
-        const password_hash = await bcrypt.hash(password_raw, 10); // Generar hash de la contraseña
+        const password_hash = await bcrypt.hash(password_raw, 10); 
 
         try {
             const result = await db.run(
@@ -90,7 +99,7 @@ export class User {
 
     async comparePassword(password_raw: string): Promise<boolean> {
         if (!this.password_hash) {
-            return false; // El usuario no tiene una contraseña local (ej. usuario de Google)
+            return false;
         }
         return await bcrypt.compare(password_raw, this.password_hash);
     }
