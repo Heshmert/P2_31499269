@@ -1,3 +1,7 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle %></title>
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="../css/list_contactos.css">
 <link rel="stylesheet" href="/css/servicios.css">
@@ -6,6 +10,14 @@
 <link rel="stylesheet" href="/css/contacto.css">
 <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 <link href="/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+
+<meta property="og:title" content="<%= ogTitle || pageTitle %>">
+<meta property="og:description" content="<%= ogDescription || 'Ciclexpress, taller de bicicletas y patinetas.' %>">
+<meta property="og:type" content="website">
+<meta property="og:url" content="<%= ogUrl || 'http://localhost:3000' %>">
+<meta property="og:image" content="<%= ogImage || '/img/og-default.png' %>">
+</head>
+
 
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-K44B2M06FN"></script>
@@ -16,59 +28,3 @@
     gtag('config', 'G-K44B2M06FN');
 </script>
 
-<nav class="navbar navbar-expand-lg navbar-custom">
-    <div class="container-fluid">
-        <div class="ciclexpress-logo">
-            <span class="logo-text"><strong><i class="bi bi-wrench-adjustable-circle"></i> Ciclexpress</strong></span>
-        </div>
-        
-        <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
-            <i class="bi bi-list"></i>
-        </button>
-
-        <div class="d-none d-lg-flex" id="navbarNavDesktop">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="/"><i class="bi bi-house-fill"></i> Inicio</a>
-                </li>
-                <li class="nav-item">
-                     <a class="nav-link" href="/informacion"><i class="bi bi-info-circle-fill"></i> Informacion</a>
-                </li>
-                 <li class="nav-item">
-                     <a class="nav-link" href="/servicios"><i class="bi bi-box-seam-fill"></i> Servicios</a>
-                </li>
-                 <li class="nav-item">
-                     <a class="nav-link" href="/contacto"><i class="bi bi-envelope-fill"></i> Contactanos</a>
-                </li>
-                 <li class="nav-item">
-                     <a class="nav-link" href="/admin/contacts"><i class="bi bi-person-lines-fill"></i> Administracion</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasExampleLabel">Menú Principal</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-         <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="/"><i class="bi bi-house-fill"></i> Inicio</a>
-            </li>
-            <li class="nav-item">
-                 <a class="nav-link" href="/informacion"><i class="bi bi-info-circle-fill"></i> Informacion</a>
-                </li>
-             <li class="nav-item">
-                 <a class="nav-link" href="/servicios"><i class="bi bi-box-seam-fill"></i> Servicios</a>
-            </li>
-             <li class="nav-item">
-                 <a class="nav-link" href="/contacto"><i class="bi bi-envelope-fill"></i> Contactanos</a>
-            </li>
-             <li class="nav-item">
-                 <a class="nav-link" href="/admin"><i class="bi bi-person-lines-fill"></i> Administracion</a>
-            </li>
-        </ul>
-    </div>
-</div>

@@ -84,16 +84,29 @@ class PaymentController {
                 paymentResult = JSON.parse(rawResponseText);
             } catch (parseError) {
                 req.flash('paymentError', `Error en el pago: La API devolvió un formato inesperado o un error interno.`);
+                // Guarda el intento fallido en la base de datos
+                await this.paymentModel.addPaymentRecord(
+                    reference,
+                    parsedAmount,
+                    currency,
+                    'failed',
+                    email,
+                    description
+                );
                 return res.redirect('/payment');
             }
 
+            let paymentStatus = 'failed';
+            let transactionId = reference;
             if (fakePaymentApiResponse.ok && paymentResult.success) {
-                req.flash('paymentSuccess', `¡Pago exitoso! Transacción ID: ${paymentResult.data.transaction_id || paymentResult.data.reference}`);
+                paymentStatus = 'completed';
+                transactionId = paymentResult.data.transaction_id || paymentResult.data.reference;
+                req.flash('paymentSuccess', `¡Pago exitoso! Transacción ID: ${transactionId}`);
                 try {
                     await this.mailerService.sendPaymentConfirmation(
                         email,
                         cardName,
-                        paymentResult.data.transaction_id || paymentResult.data.reference,
+                        transactionId,
                         parsedAmount.toFixed(2),
                         currency,
                         new Date()
@@ -101,23 +114,38 @@ class PaymentController {
                 } catch (emailError) {
                     // Error al enviar correo de confirmación de pago
                 }
-                try {
-                    await this.paymentModel.addPaymentRecord(
-                        paymentResult.data.transaction_id || paymentResult.data.reference,
-                        parsedAmount,
-                        currency,
-                        'completed',
-                        email,
-                        description
-                    );
-                } catch (dbError) {
-                    // Error al guardar registro de pago en DB
-                }
             } else {
                 req.flash('paymentError', `Error en el pago: ${paymentResult.message || 'Transacción rechazada.'}`);
+                if (paymentResult && paymentResult.data && paymentResult.data.transaction_id) {
+                    transactionId = paymentResult.data.transaction_id;
+                }
             }
+
+            // Guarda el intento de pago (exitoso o fallido)
+            try {
+                await this.paymentModel.addPaymentRecord(
+                    transactionId,
+                    parsedAmount,
+                    currency,
+                    paymentStatus,
+                    email,
+                    description
+                );
+            } catch (dbError) {
+                // Error al guardar registro de pago en DB
+            }
+
         } catch (apiError) {
             req.flash('paymentError', 'Error al procesar el pago. Intenta de nuevo más tarde.');
+            // Guarda el intento fallido en la base de datos
+            await this.paymentModel.addPaymentRecord(
+                reference,
+                parsedAmount,
+                currency,
+                'failed',
+                email,
+                description
+            );
         }
         res.redirect('/payment');
     }

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle %></title>
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Metadatos Open Graph para la página de registro -->
+    <meta property="og:title" content="Registro - Panel de Administración">
+    <meta property="og:description" content="Página de registro de nuevos usuarios del panel de administración.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="http://localhost:3000/register">
+    <meta property="og:image" content="https://placehold.co/1200x630/28a745/ffffff?text=Registro+Admin">
+</head>
+<body class="d-flex align-items-center justify-content-center bg-light" style="min-height: 100vh;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow-lg p-4">
+                    <div class="card-body">
+                        <h2 class="card-title text-center mb-4">Registro de Usuario</h2>
+                        <% if (error && error.length > 0) { %>
+                            <div class="alert alert-danger" role="alert">
+                                <%= error[0] %>
+                            </div>
+                        <% } %>
+                        <form action="/register" method="POST">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Usuario:</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña:</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Registrar</button>
+                        </form>
+                        <div class="text-center mt-4">
+                            <p>¿Ya tienes cuenta? <a href="/login">Inicia Sesión</a></p>
+                            <p><a href="/">Volver al Inicio</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

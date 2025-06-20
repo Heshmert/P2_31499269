@@ -36,8 +36,8 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/">
-                        <i class="bi bi-house-door"></i> Volver al Inicio
+                    <a class="nav-link" href="/logout">
+                        <i class="bi bi-house-door"></i> Cerrar Sesion
                     </a>
                 </li>
             </ul>
@@ -52,10 +52,14 @@
                 <section id="contacts-section" class="content-section active">
                     <div>
                         <h2>Lista de Contactos</h2>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="search-contact" placeholder="Buscar por nombre o email...">
+                        </div>
+                        
                         <% if (allContacts && allContacts.length > 0) { %>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover caption-top">
-                                <caption>Todos los contactos registrados</caption>
+                            <!-- Ejemplo de tabla de contactos -->
+                            <table class="table table-striped">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -68,10 +72,10 @@
                                 </thead>
                                 <tbody>
                                     <% allContacts.forEach(contact => { %>
-                                    <tr>
+                                    <tr class="contact-row">
                                         <td><%= contact.id %></td>
-                                        <td><%= contact.name %></td>
-                                        <td><%= contact.email %></td>
+                                        <td class="contact-name"><%= contact.name %></td>
+                                        <td class="contact-email"><%= contact.email %></td>
                                         <td><%= contact.clientIp %></td>
                                         <td><%= contact.country %></td>
                                         <td><%= contact.created_at %></td>
@@ -248,31 +252,49 @@
                 <section id="payments-section" class="content-section">
                     <div>
                         <h2>Pagos/Ventas</h2>
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-2">
+                                <input type="text" class="form-control" id="filter-service" placeholder="Filtrar por referencia/servicio">
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <select class="form-select" id="filter-status">
+                                    <option value="">Todos los estados</option>
+                                    <option value="completed">Completado</option>
+                                    <option value="pending">Pendiente</option>
+                                    <option value="failed">Fallido</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <input type="date" class="form-control" id="filter-date-from" placeholder="Desde">
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <input type="date" class="form-control" id="filter-date-to" placeholder="Hasta">
+                            </div>
+                        </div>
                         <% if (payments && payments.length > 0) { %>
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover caption-top">
-                                <caption>Registros de pagos procesados</caption>
+                            <table class="table table-striped">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Referencia</th>
+                                        <th>Servicio/Referencia</th>
                                         <th>Monto</th>
                                         <th>Moneda</th>
                                         <th>Estado</th>
-                                        <th>Fecha/Hora</th>
-                                        <th>Email</th>
+                                        <th>Fecha</th>
+                                        <th>Email comprador</th>
                                         <th>Descripción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <% payments.forEach(function(payment) { %>
-                                    <tr>
+                                    <tr class="payment-row">
                                         <td><%= payment.id %></td>
-                                        <td><%= payment.transactionId || 'N/A' %></td>
+                                        <td class="payment-service"><%= payment.transactionId || 'N/A' %></td>
                                         <td><%= payment.amount ? payment.amount.toFixed(2) : 'N/A' %></td>
                                         <td><%= payment.currency || 'N/A' %></td>
-                                        <td><%= payment.status || 'N/A' %></td>
-                                        <td><%= payment.timestamp ? new Date(payment.timestamp).toLocaleString() : 'N/A' %></td>
+                                        <td class="payment-status"><%= payment.status ? payment.status.toLowerCase() : 'n/a' %></td>
+                                        <td class="payment-date"><%= payment.timestamp ? payment.timestamp.toString().slice(0,10) : '' %></td>
                                         <td><%= payment.buyerEmail || 'N/A' %></td>
                                         <td><%= payment.description || 'N/A' %></td>
                                     </tr>
@@ -290,6 +312,8 @@
         </div>
     </main>
     <!-- Solo Bootstrap JS para modales -->
+    <script src="/js/contacts-search.js"></script>
+    <script src="/js/payments-filter.js"></script>
     <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="/js/admin.js"></script>
 </body>

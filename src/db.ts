@@ -4,6 +4,7 @@ import sqlite3 from 'sqlite3';
 import path from 'path';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import bcrypt from 'bcrypt';
 dotenv.config();
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'app.db');
@@ -49,8 +50,6 @@ async function initTables(): Promise<void> {
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
-        console.log('Tabla contacts lista o ya existía.');
-
         await runAsync(`
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,8 +63,6 @@ async function initTables(): Promise<void> {
                 FOREIGN KEY (contactId) REFERENCES contacts(id)
             )
         `);
-        console.log('Tabla messages lista o ya existía.');
-
         await runAsync(`
             CREATE TABLE IF NOT EXISTS payments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,7 +77,35 @@ async function initTables(): Promise<void> {
                 apiResponse TEXT
             )
         `);
-        console.log('Tabla payments lista o ya existía.');
+        await runAsync(`
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE,
+                password_hash TEXT,
+                google_id TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // Crear usuario admin si no existe
+        const adminUsername = 'admin';
+        const adminPassword = 'admin'; // Puedes cambiar la contraseña aquí
+        const adminHash = await bcrypt.hash(adminPassword, 10);
+
+        const adminExists = await new Promise<boolean>((resolve, reject) => {
+            db.get('SELECT id FROM users WHERE username = ?', [adminUsername], (err, row) => {
+                if (err) reject(err);
+                else resolve(!!row);
+            });
+        });
+
+        if (!adminExists) {
+            await runAsync(
+                'INSERT INTO users (username, password_hash, google_id) VALUES (?, ?, NULL)',
+                [adminUsername, adminHash]
+            );
+            console.log('Usuario admin creado automáticamente.');
+        }
 
         console.log('Creación/verificación de tablas completada.');
     } catch (error) {
@@ -89,4 +114,4 @@ async function initTables(): Promise<void> {
     }
 }
 
-export { db, initTables };
+export { db, initTables, DB_PATH };

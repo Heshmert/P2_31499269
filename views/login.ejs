@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+    <%- include('partials/header.ejs')%>
+<body class="bg-gradient bg-primary" style="min-height: 100vh;">
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="row justify-content-center w-100">
+            <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+                <div class="card shadow border-0 rounded-4 p-3 my-4">
+                    <div class="card-body p-3">
+                        <div class="text-center mb-3">
+                            <i class="bi bi-person-circle" style="font-size: 2.5rem; color: #0d6efd;"></i>
+                            <h2 class="card-title mt-2 mb-1 fw-bold fs-4">Iniciar Sesión</h2>
+                            <p class="text-muted mb-2 fs-6">Accede a tu cuenta de administrador</p>
+                        </div>
+                        <% if (error && error.length > 0) { %>
+                            <div class="alert alert-danger py-2" role="alert">
+                                <%= error[0] %>
+                            </div>
+                        <% } %>
+                        <% if (success && success.length > 0) { %>
+                            <div class="alert alert-success py-2" role="alert">
+                                <%= success[0] %>
+                            </div>
+                        <% } %>
+                        <form action="/login" method="POST" autocomplete="off">
+                            <div class="mb-2">
+                                <label for="username" class="form-label mb-1">Usuario</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" id="username" name="username" required autofocus>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label for="password" class="form-label mb-1">Contraseña</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold btn-sm my-2">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            </button>
+                        </form>
+                        <a href="/auth/google" class="btn btn-outline-danger w-100 btn-sm mb-2">
+                            <i class="bi bi-google me-2"></i> Iniciar con Google
+                        </a>
+                        <div class="text-center mt-2">
+                            <a href="/" class="text-decoration-none text-primary small">
+                                <i class="bi bi-arrow-left"></i> Volver al Inicio
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
