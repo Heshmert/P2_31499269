@@ -142,6 +142,9 @@ Accede a la aplicación en [http://localhost:3000](http://localhost:3000).
 
 ## Funcionalidades de Administración
 
+- **Usuario:** admin
+- **Constraseña:** admin
+
 - **Login local y con Google:** Acceso seguro para administradores.
 - **Vista protegida de contactos:** Tabla con buscador por nombre/email.
 - **Vista protegida de pagos:** Tabla con filtros por referencia, estado y rango de fechas.
@@ -161,5 +164,4 @@ src/
   public/
     js/
     css/
-    img/
 ```
