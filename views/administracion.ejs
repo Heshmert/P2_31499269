@@ -270,6 +270,17 @@
                             <div class="col-md-2 mb-2">
                                 <input type="date" class="form-control" id="filter-date-to" placeholder="Hasta">
                             </div>
+                            <div class="col-md-3 mb-2">
+    <select class="form-select" id="filter-service-type">
+        <option value="">Todos los tipos de servicio</option>
+        <option value="pinchazo">Reparación de Pinchazo / Neumático</option>
+        <option value="mantenimiento">Mantenimiento General</option>
+        <option value="frenos-cambios">Ajuste de Frenos y Cambios</option>
+        <option value="diagnostico">Diagnóstico Completo</option>
+        <option value="bateria-scooter">Reparación Batería Patineta</option>
+        <option value="motor-scooter">Reparación Motor/Electrónica Patineta</option>
+    </select>
+</div>
                         </div>
                         <% if (payments && payments.length > 0) { %>
                         <div class="table-responsive">
@@ -283,7 +294,7 @@
                                         <th>Estado</th>
                                         <th>Fecha</th>
                                         <th>Email comprador</th>
-                                        <th>Descripción</th>
+                                        <th>Tipo de servicio</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -296,7 +307,9 @@
                                         <td class="payment-status"><%= payment.status ? payment.status.toLowerCase() : 'n/a' %></td>
                                         <td class="payment-date"><%= payment.timestamp ? payment.timestamp.toString().slice(0,10) : '' %></td>
                                         <td><%= payment.buyerEmail || 'N/A' %></td>
-                                        <td><%= payment.description || 'N/A' %></td>
+                                        <td class="payment-service-type" data-service-type="<%= payment.description || '' %>">
+                                            <%= payment.description || 'N/A' %>
+                                        </td>
                                     </tr>
                                     <% }); %>
                                 </tbody>

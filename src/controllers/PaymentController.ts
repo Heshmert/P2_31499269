@@ -53,7 +53,7 @@ class PaymentController {
         }
 
         const reference = `payment_id_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-        const description = `Pago por servicio: ${service}`;
+        const description = `${service}`;
         const formattedExpiryMonth = String(expiryMonth).padStart(2, '0');
 
         try {
